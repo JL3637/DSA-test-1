@@ -153,6 +153,7 @@ int main(){
             num = stack_ans[0];
             stack_2_top = -1;
             stack_1_top = -1;
+            stack_ans_top = -1;
             index = 1;
         }
     }
