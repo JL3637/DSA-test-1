@@ -1,16 +1,16 @@
 #include<stdio.h>
 #include<string.h>
 
-#define stack_len 10000
-#define array_len 10000
+#define stack_len 1000050
+#define array_len 1000050
 
 void push(long long int stack[],long long int data, int *stack_top){
     *stack_top += 1;
     stack[*stack_top] = data; 
 }
 
-int pop(long long int stack[], int *stack_top){
-    int data = stack[*stack_top];
+long long int pop(long long int stack[], int *stack_top){
+    long long int data = stack[*stack_top];
     stack[*stack_top] = 0;
     *stack_top -= 1;
     return data;
@@ -35,9 +35,9 @@ int prime_num(char symbol){
 }
 
 void caculate_stack(long long int stack[],long long int operater_sign[], int *stack_top, long long int stack_ans[], int *stack_ans_top){
-    int a = 0;
-    int b = 0;
-    int c = 0;
+    long long int a = 0;
+    long long int b = 0;
+    long long int c = 0;
     for(int i = 0; i <= *stack_top; i++){
         if(operater_sign[i] == 0){
             push(stack_ans, stack[i], stack_ans_top);
@@ -64,7 +64,12 @@ void caculate_stack(long long int stack[],long long int operater_sign[], int *st
             else if(stack[i] == '/'){
                 a = pop(stack_ans, stack_ans_top);
                 b = pop(stack_ans, stack_ans_top);
-                c = b / a;
+                if(b < 0){
+                    c = b / a - 1;
+                }
+                else{
+                    c = b / a;
+                }
                 push(stack_ans, c, stack_ans_top);
             }
             else if(stack[i] == '%'){
@@ -79,19 +84,19 @@ void caculate_stack(long long int stack[],long long int operater_sign[], int *st
 }
 
 int main(){
-    long long int stack_1[stack_len] = {0};
+    static long long int stack_1[stack_len] = {0};
     int stack_1_top = -1;
-    long long int stack_2[2][stack_len] = {{0}};
+    static long long int stack_2[2][stack_len] = {{0}};
     int stack_2_top = -1;
-    long long int stack_ans[stack_len] = {0};
+    static long long int stack_ans[stack_len] = {0};
     int stack_ans_top = -1;
     char string[array_len];
-    scanf("%s", &string);
+    scanf("%s", string);
 
     int index = 0;
     long long int num = 0;
     for(int i = 0; i < strlen(string); i++){
-        if(string[i] - '0' > 0 && string[i] - '0' <= 9){
+        if(string[i] - '0' >= 0 && string[i] - '0' <= 9){
             num = num * 10 + (string[i] - '0');
             index = 1;
         }
@@ -103,14 +108,16 @@ int main(){
             }
             while(1){
                 if(stack_1_top == -1 || stack_1[stack_1_top] == '('){
-                    push(stack_1, string[i], &stack_1_top);
+                    long long int data = string[i];
+                    push(stack_1, data, &stack_1_top);
                     break;
                 }
                 else if(prime_num(string[i]) > prime_num(stack_1[stack_1_top])){
-                    push(stack_1, string[i], &stack_1_top);
+                    long long int data = string[i];
+                    push(stack_1, data, &stack_1_top);
                     break;
                 }else if(prime_num(string[i]) <= prime_num(stack_1[stack_1_top])){
-                    int data = pop(stack_1, &stack_1_top);
+                    long long int data = pop(stack_1, &stack_1_top);
                     push(stack_2[0], data, &stack_2_top);
                     stack_2[1][stack_2_top] = 1;
                 }
@@ -122,7 +129,8 @@ int main(){
                 num = 0;
                 index = 0;
             }
-            push(stack_1, string[i], &stack_1_top);
+            long long int data = string[i];
+            push(stack_1, data, &stack_1_top);
         }
         else if(string[i] == ')'){
             if(index == 1){
@@ -131,11 +139,11 @@ int main(){
                 index = 0;
             }
             while(stack_1[stack_1_top] != '('){
-                int data = pop(stack_1, &stack_1_top);
+                long long int data = pop(stack_1, &stack_1_top);
                 push(stack_2[0], data, &stack_2_top);
                 stack_2[1][stack_2_top] = 1;
             }
-            int data = pop(stack_1, &stack_1_top); //pop '('
+            long long int data = pop(stack_1, &stack_1_top); //pop '('
         }
         else if(string[i] == '='){
             if(index == 1){
@@ -144,7 +152,7 @@ int main(){
                 index = 0;
             }
             while(stack_1_top != -1){
-                int data = pop(stack_1, &stack_1_top);
+                long long int data = pop(stack_1, &stack_1_top);
                 push(stack_2[0], data, &stack_2_top);
                 stack_2[1][stack_2_top] = 1;
             }
