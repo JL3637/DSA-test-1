@@ -143,7 +143,7 @@ int main(){
                 push(stack_2[0], data, &stack_2_top);
                 stack_2[1][stack_2_top] = 1;
             }
-            long long int data = pop(stack_1, &stack_1_top); //pop '('
+            pop(stack_1, &stack_1_top); //pop '('
         }
         else if(string[i] == '='){
             if(index == 1){
