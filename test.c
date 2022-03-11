@@ -23,6 +23,7 @@ int is_operator(char symbol){
     else{
         return 0;
     }
+    return 0;
 }
 
 int prime_num(char symbol){
@@ -32,6 +33,7 @@ int prime_num(char symbol){
     else if(symbol == '+' || symbol == '-'){
         return 1;
     }
+    return 0;
 }
 
 void caculate_stack(long long int stack[],long long int operater_sign[],long long int *stack_top, long long int stack_ans[],long long int *stack_ans_top){
@@ -63,6 +65,10 @@ void caculate_stack(long long int stack[],long long int operater_sign[],long lon
             }
             else if(stack[i] == '/'){
                 a = pop(stack_ans, stack_ans_top);
+                if(a == 0){
+                    printf("false");
+                    continue;
+                }
                 b = pop(stack_ans, stack_ans_top);
                 if(b < 0){
                     c = b / a - 1;
@@ -105,6 +111,7 @@ int main(){
                 push(stack_2[0], num, &stack_2_top);
                 num = 0;
                 index = 0;
+                stack_2[1][stack_2_top] = 0;
             }
             while(1){
                 if(stack_1_top == -1 || stack_1[stack_1_top] == '('){
@@ -128,6 +135,7 @@ int main(){
                 push(stack_2[0], num, &stack_2_top);
                 num = 0;
                 index = 0;
+                stack_2[1][stack_2_top] = 0;
             }
             long long int data = string[i];
             push(stack_1, data, &stack_1_top);
@@ -137,6 +145,7 @@ int main(){
                 push(stack_2[0], num, &stack_2_top);
                 num = 0;
                 index = 0;
+                stack_2[1][stack_2_top] = 0;
             }
             while(stack_1[stack_1_top] != '('){
                 long long int data = pop(stack_1, &stack_1_top);
@@ -150,6 +159,7 @@ int main(){
                 push(stack_2[0], num, &stack_2_top);
                 num = 0;
                 index = 0;
+                stack_2[1][stack_2_top] = 0;
             }
             while(stack_1_top != -1){
                 long long int data = pop(stack_1, &stack_1_top);
@@ -165,6 +175,5 @@ int main(){
             index = 1;
         }
     }
-
     return 0;
 }
