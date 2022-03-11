@@ -4,12 +4,12 @@
 #define stack_len 1000050
 #define array_len 1000050
 
-void push(long long int stack[],long long int data, int *stack_top){
+void push(long long int stack[], long long int data, long long int *stack_top){
     *stack_top += 1;
     stack[*stack_top] = data; 
 }
 
-long long int pop(long long int stack[], int *stack_top){
+long long int pop(long long int stack[], long long int *stack_top){
     long long int data = stack[*stack_top];
     stack[*stack_top] = 0;
     *stack_top -= 1;
@@ -34,7 +34,7 @@ int prime_num(char symbol){
     }
 }
 
-void caculate_stack(long long int stack[],long long int operater_sign[], int *stack_top, long long int stack_ans[], int *stack_ans_top){
+void caculate_stack(long long int stack[],long long int operater_sign[],long long int *stack_top, long long int stack_ans[],long long int *stack_ans_top){
     long long int a = 0;
     long long int b = 0;
     long long int c = 0;
@@ -85,11 +85,11 @@ void caculate_stack(long long int stack[],long long int operater_sign[], int *st
 
 int main(){
     static long long int stack_1[stack_len] = {0};
-    int stack_1_top = -1;
+    long long int stack_1_top = -1;
     static long long int stack_2[2][stack_len] = {{0}};
-    int stack_2_top = -1;
+    long long int stack_2_top = -1;
     static long long int stack_ans[stack_len] = {0};
-    int stack_ans_top = -1;
+    long long int stack_ans_top = -1;
     char string[array_len];
     scanf("%s", string);
 

@@ -1,16 +1,12 @@
 #include<stdio.h>
 
 int main(){
-    int a;
-    char y;
-    int b[10000];
-    int c[10000];
-    int i = 0;
-    while(scanf("%d", &a) != EOF){
-        b[i] = a;
-        i++;
+    int a = 1;
+    char b = '+';
+    char c = '=';
+    printf("%d", a);
+    for(int i = 0; i < 100000; i++){
+        printf("%c%d%c", b, a, c);
     }
-    for(int i = 0; i < i; i++){
-        printf("%d\n", b[i]);
-    }
+    return 0;
 }
