@@ -1,9 +1,11 @@
 #include<stdio.h>
 
-typedef struct students{
-    int group_number;
-    int id_number;
-}Students;
+typedef struct q_node{
+    int group;
+    int id;
+    struct q_node* LR_ptr;
+}q_node;
+
 
 int situation_case(char situation[]){
     char a[]="enter";
@@ -27,12 +29,42 @@ int situation_case(char situation[]){
     }
 }
 
+void is_empty(){
+
+}
+
+void enqueue(){
+
+}
+
+void dequeue(){
+
+}
+
+void enter(){
+
+}
+
+void leave(){
+
+}
+
+void go(){
+
+}
+
+void close(){
+
+}
+
+
 int main(){
     int m = 0;
     int n = 0;
     int k = 0;
     scanf("%d%d%d", &m, &n, &k);
     char situation[10];
+
     /*for(int i = 0; i < n; i++){
         scanf("%s", situation);
     }*/
