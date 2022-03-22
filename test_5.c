@@ -1,9 +1,10 @@
 #include<stdio.h>
+#include<stdlib.h>
 
-typedef struct students{
-    int group_number;
-    int id_number;
-}Students;
+typedef struct xor_node{
+    int data;
+    struct xor_node *next_xor_prev;
+}xor_node;
 
 int situation_case(char situation[]){
     char a[]="enter";
