@@ -86,25 +86,68 @@ void print_waiting_line(xor_node *tail){
 
 }
 
-void push(int q[], int *q_head, int *q_tail, int group_id){
-    *q_head += 1;
-    for(int i = *q_tail ; i <= *q_head; i++){
-        if(q[i] == group_id){
-            *q_head -= 1;
-            return;
-        }
+void push(int q[], int *q_head, int *q_tail, int group_id, int q_length){
+    if(*q_head == -1 && *q_tail == -1){
+        *q_head += 1;
+        *q_tail += 1;
+        q[*q_head] = group_id;
+        return;
     }
-    q[*q_head] = group_id;
+
+    if(*q_head >= *q_tail){
+        for(int i = *q_tail; i <= *q_head; i++){
+            if(q[i] == group_id){
+                return;
+            }
+        }
+        *q_head += 1;
+        if(*q_head == q_length){
+            *q_head = 0;
+        }
+        q[*q_head] = group_id;
+    }
+    else if(*q_head < *q_tail){
+        for(int i = *q_tail; i <= q_length-1; i++){
+            if(q[i] == group_id){
+                return;
+            }
+        }
+        for(int i = 0; i <= *q_head; i++){
+            if(q[i] == group_id){
+                return;
+            }
+        }
+        *q_head  += 1;
+        q[*q_head] = group_id;
+    }
 }
 
-void pop_head(int q[], int *q_head){ //leave
+void pop_head(int q[], int *q_head, int*q_tail, int q_length){ //leave
+    if(*q_head == *q_tail){
+        q[*q_head] = -1;
+        *q_head = -1;
+        *q_tail = -1;
+        return;
+    }
     q[*q_head] = -1;
     *q_head -= 1;
+    if(*q_head == -1){
+        *q_head = q_length-1;
+    }
 }
 
-void pop_tail(int q[], int *q_tail){ //go
+void pop_tail(int q[], int *q_head, int *q_tail, int q_length){ //go
+    if(*q_head == *q_tail){
+        q[*q_head] = -1;
+        *q_head = -1;
+        *q_tail = -1;
+        return;
+    }
     q[*q_tail] = -1;
     *q_tail += 1;
+    if(*q_tail == q_length){
+        *q_tail = 0;
+    }
 }
 
 int main(){
@@ -129,7 +172,7 @@ int main(){
             group_priority[i][j] = -1;
         }
         group_priority_head[i] = -1;
-        group_priority_tail[i] = 0;
+        group_priority_tail[i] = -1;
     }
     
     char situation[10];
@@ -137,38 +180,56 @@ int main(){
     char b[] = "leave";
     char c[] = "go";
     char d[] = "close";
+
+    int group_id = 0;
+    int student_id = 0;
+    int toilet_id = 0;
+
     for(int i = 0; i < n; i++){
         scanf("%s", situation);
         if(strcmp(situation, a) == 0){
-            int group_id = 0;
-            int student_id = 0;
-            int toilet_id = 0;
             scanf("%d%d%d", &group_id, &student_id, &toilet_id);
             enter(&toilet_group_queue[toilet_id][group_id], student_id);
-            push(group_priority[toilet_id], &group_priority_head[toilet_id], &group_priority_tail[toilet_id], group_id);
+            push(group_priority[toilet_id], &group_priority_head[toilet_id], &group_priority_tail[toilet_id], group_id, k);
         }
         else if(strcmp(situation, b) == 0){
-            int toilet_id = 0;
             scanf("%d", &toilet_id);     
             leave(&toilet_group_queue[toilet_id][group_priority[toilet_id][group_priority_head[toilet_id]]]);
             if(toilet_group_queue[toilet_id][group_priority[toilet_id][group_priority_head[toilet_id]]].head == NULL){
-                pop_head(group_priority[toilet_id], &group_priority_head[toilet_id]);
+                pop_head(group_priority[toilet_id], &group_priority_head[toilet_id], &group_priority_tail[toilet_id], k);
             }
         }
         else if(strcmp(situation, c) == 0){
-            int toilet_id = 0;
             scanf("%d", &toilet_id);
             go(&toilet_group_queue[toilet_id][group_priority[toilet_id][group_priority_tail[toilet_id]]]); 
             if(toilet_group_queue[toilet_id][group_priority[toilet_id][group_priority_tail[toilet_id]]].tail == NULL){
-                pop_tail(group_priority[toilet_id], &group_priority_tail[toilet_id]);
+                pop_tail(group_priority[toilet_id], &group_priority_head[toilet_id], &group_priority_tail[toilet_id], k);
             }
         }
     }
     for(int i = 0; i < m; i++){
-        for(int j = group_priority_tail[i]; j <= group_priority_head[i]; j++){
-            print_waiting_line(toilet_group_queue[i][group_priority[i][j]].tail);
-            if(j != group_priority_head[i]){
+        if(group_priority_head[i] == -1 && group_priority_tail[i] == -1){
+            printf("\n");
+            continue;
+        }
+        if(group_priority_head[i] >= group_priority_tail[i]){
+            for(int j = group_priority_tail[i]; j <= group_priority_head[i]; j++){
+                print_waiting_line(toilet_group_queue[i][group_priority[i][j]].tail);
+                if(j != group_priority_head[i]){
+                    printf(" ");
+                }
+            }
+        }
+        else{
+            for(int j = group_priority_tail[i]; j < k; j++){
+                print_waiting_line(toilet_group_queue[i][group_priority[i][j]].tail);
                 printf(" ");
+            }
+            for(int j = 0; j <= group_priority_head[i]; j++){
+                print_waiting_line(toilet_group_queue[i][group_priority[i][j]].tail);
+                if(j != group_priority_head[i]){
+                    printf(" ");
+                }
             }
         }
         printf("\n");
