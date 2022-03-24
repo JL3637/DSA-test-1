@@ -101,7 +101,7 @@ void XorLinkedListDelete(XorLinkedList *list, int pos) {
 int main(){
     XorLinkedList *list = malloc(sizeof(XorLinkedList));
     createXorLinkedList(list);
-    print(NULL, list->right);
+    print(list->left, NULL);
 
 
 

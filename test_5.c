@@ -16,57 +16,52 @@ xor_node* xor(xor_node* a, xor_node* b){
     return (xor_node*)((unsigned long)(a) ^ (unsigned long)(b));
 }
 
-void is_empty(queue a){
-
+int is_queue_emty(queue q){
+    if(q.head == NULL && q.tail == NULL){
+        return 1;
+    }
+    else{
+        return 0;
+    }
 }
 
-void enter(xor_node **head, int student_id){
+void enter(queue *toilet_group_queue, int student_id){
     xor_node *new_node = malloc(sizeof(xor_node));
     new_node->data = student_id;
 
-    if(*head == NULL){
+    if(is_queue_emty(*toilet_group_queue)){
         new_node->link = NULL;
+        toilet_group_queue->tail = new_node;
     }
     else{
-        (*head)->link = xor((*head)->link, new_node);
-        new_node->link = *head;
+        (toilet_group_queue->head)->link = xor((toilet_group_queue->head)->link, new_node);
+        new_node->link = toilet_group_queue->head;
     }
 
-    *head = new_node;
+    toilet_group_queue->head = new_node;
 }
 
-void leave(xor_node **head){
-    if(!(*head)){
-        return;
-    }
-    xor_node *tmp = (*head)->link;
+void leave(queue *toilet_group_queue){
+    xor_node *tmp = (toilet_group_queue->head)->link;
     if(tmp){
-        tmp->link = xor((*head), tmp->link);
+        tmp->link = xor((toilet_group_queue->head), tmp->link);
     }
-    free(*head);
-    *head = tmp;
+    free(toilet_group_queue->head);
+    toilet_group_queue->head = tmp;
+    if(toilet_group_queue->head == NULL){
+        toilet_group_queue->tail = NULL;
+    }
 }
 
-void go(xor_node **head){
-    if (*head == NULL)
-        return;
-    else {
-        xor_node *curr = *head;
-        xor_node *prev = NULL;
-        xor_node *next;
-
-        while (xor(curr->link, prev) != NULL) {
-            next = xor(prev, curr->link);
-            prev = curr;
-            curr = next;
-        }
-        if (prev != NULL){
-            prev->link = xor(xor(prev->link, curr), NULL);
-        }
-        else{
-            *head = NULL;
-        }
-        free(curr);
+void go(queue *toilet_group_queue){
+    xor_node *tmp = (toilet_group_queue->tail)->link;
+    if(tmp){
+        tmp->link = xor(tmp->link, (toilet_group_queue->tail));
+    }
+    free(toilet_group_queue->tail);
+    toilet_group_queue->tail = tmp;
+    if(toilet_group_queue->tail == NULL){
+        toilet_group_queue->head = NULL;
     }
 }
 
@@ -74,18 +69,42 @@ void close(){
 
 }
 
-void print_waiting_line(xor_node *head){
-    if(!head){
+void print_waiting_line(xor_node *tail){
+    if(!tail){
         return;
     }
     xor_node *prev = NULL;
-    while(head) {
-        xor_node *tmp = head;
-        printf("%d ", head->data);
-        head = xor(prev, head->link);
+    while(tail){
+        xor_node *tmp = tail;
+        printf("%d", tail->data);
+        tail = xor(tail->link, prev);
         prev = tmp;
+        if(tail){
+            printf(" ");
+        }
     }
-    printf("\n");
+
+}
+
+void push(int q[], int *q_head, int *q_tail, int group_id){
+    *q_head += 1;
+    for(int i = *q_tail ; i <= *q_head; i++){
+        if(q[i] == group_id){
+            *q_head -= 1;
+            return;
+        }
+    }
+    q[*q_head] = group_id;
+}
+
+void pop_head(int q[], int *q_head){ //leave
+    q[*q_head] = -1;
+    *q_head -= 1;
+}
+
+void pop_tail(int q[], int *q_tail){ //go
+    q[*q_tail] = -1;
+    *q_tail += 1;
 }
 
 int main(){
@@ -104,14 +123,15 @@ int main(){
 
     int group_priority[m][k];
     int group_priority_head[m];
+    int group_priority_tail[m];
     for(int i = 0; i < m; i++){
         for(int j = 0; j < k; j++){
             group_priority[i][j] = -1;
         }
-        group_priority_head[i] = 0;
+        group_priority_head[i] = -1;
+        group_priority_tail[i] = 0;
     }
     
-
     char situation[10];
     char a[] = "enter";
     char b[] = "leave";
@@ -124,23 +144,34 @@ int main(){
             int student_id = 0;
             int toilet_id = 0;
             scanf("%d%d%d", &group_id, &student_id, &toilet_id);
-            enter(&toilet_group_queue[toilet_id][group_id].head, student_id);
+            enter(&toilet_group_queue[toilet_id][group_id], student_id);
+            push(group_priority[toilet_id], &group_priority_head[toilet_id], &group_priority_tail[toilet_id], group_id);
         }
         else if(strcmp(situation, b) == 0){
             int toilet_id = 0;
-            scanf("%d", &toilet_id);
-            leave(&toilet_group_queue[toilet_id][0].head);
+            scanf("%d", &toilet_id);     
+            leave(&toilet_group_queue[toilet_id][group_priority[toilet_id][group_priority_head[toilet_id]]]);
+            if(toilet_group_queue[toilet_id][group_priority[toilet_id][group_priority_head[toilet_id]]].head == NULL){
+                pop_head(group_priority[toilet_id], &group_priority_head[toilet_id]);
+            }
         }
         else if(strcmp(situation, c) == 0){
             int toilet_id = 0;
             scanf("%d", &toilet_id);
-            go(&toilet_group_queue[toilet_id][0].head);
+            go(&toilet_group_queue[toilet_id][group_priority[toilet_id][group_priority_tail[toilet_id]]]); 
+            if(toilet_group_queue[toilet_id][group_priority[toilet_id][group_priority_tail[toilet_id]]].tail == NULL){
+                pop_tail(group_priority[toilet_id], &group_priority_tail[toilet_id]);
+            }
         }
     }
     for(int i = 0; i < m; i++){
-        for(int j = 0; j < k; j++){
-            print_waiting_line(toilet_group_queue[i][j].head);
+        for(int j = group_priority_tail[i]; j <= group_priority_head[i]; j++){
+            print_waiting_line(toilet_group_queue[i][group_priority[i][j]].tail);
+            if(j != group_priority_head[i]){
+                printf(" ");
+            }
         }
+        printf("\n");
     }
 
 
