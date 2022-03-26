@@ -23,18 +23,25 @@ int is_queue_emty(queue q){
     else{
         return 0;
     }
+    return 0;
+}
+
+void reverse_xor_queue(queue *q){
+    xor_node *tmp;
+    tmp = q->head;
+    q->head = q->tail;
+    q->tail = tmp;
+    return;
 }
 
 void connect_two_list(queue *a, queue *b){ //b connect to a
     (a->head)->link = xor((a->head)->link, b->head);
     (b->head)->link = xor(a->head, (b->head)->link);
     a->head = b->tail;
+    return;
 }
 
 void print_waiting_line(xor_node *tail){
-    if(!tail){
-        return;
-    }
     xor_node *prev = NULL;
     while(tail){
         xor_node *tmp = tail;
@@ -45,46 +52,33 @@ void print_waiting_line(xor_node *tail){
             printf(" ");
         }
     }
-
+    return;
 }
 
-void push(int q[], int *q_head, int *q_tail, int group_id, int q_length){
-    if(*q_head == -1 && *q_tail == -1){
+void push(int q[], int *q_head, int *q_tail, int group_id, int q_length, int q_appearance[]){
+    if(q_appearance[group_id] == 1){
+        return;
+    }
+    else if(*q_head == -1 && *q_tail == -1){
         *q_head += 1;
         *q_tail += 1;
         q[*q_head] = group_id;
+        q_appearance[group_id] = 1;
         return;
     }
-
-    if(*q_head >= *q_tail){
-        for(int i = *q_tail; i <= *q_head; i++){
-            if(q[i] == group_id){
-                return;
-            }
-        }
+    else{
         *q_head += 1;
         if(*q_head == q_length){
             *q_head = 0;
         }
         q[*q_head] = group_id;
-    }
-    else if(*q_head < *q_tail){
-        for(int i = *q_tail; i <= q_length-1; i++){
-            if(q[i] == group_id){
-                return;
-            }
-        }
-        for(int i = 0; i <= *q_head; i++){
-            if(q[i] == group_id){
-                return;
-            }
-        }
-        *q_head  += 1;
-        q[*q_head] = group_id;
+        q_appearance[group_id] = 1;
+        return;
     }
 }
 
-void pop_head(int q[], int *q_head, int*q_tail, int q_length){ //leave
+void pop_head(int q[], int *q_head, int*q_tail, int q_length, int q_appearance[]){ //leave
+    q_appearance[q[*q_head]] = 0;
     if(*q_head == *q_tail){
         q[*q_head] = -1;
         *q_head = -1;
@@ -96,9 +90,11 @@ void pop_head(int q[], int *q_head, int*q_tail, int q_length){ //leave
     if(*q_head == -1){
         *q_head = q_length-1;
     }
+    return;
 }
 
-void pop_tail(int q[], int *q_head, int *q_tail, int q_length){ //go
+void pop_tail(int q[], int *q_head, int *q_tail, int q_length, int q_appearance[]){ //go
+    q_appearance[q[*q_tail]] = 0;
     if(*q_head == *q_tail){
         q[*q_head] = -1;
         *q_head = -1;
@@ -110,12 +106,12 @@ void pop_tail(int q[], int *q_head, int *q_tail, int q_length){ //go
     if(*q_tail == q_length){
         *q_tail = 0;
     }
+    return;
 }
 
 void enter(queue *toilet_group_queue, int student_id){
     xor_node *new_node = malloc(sizeof(xor_node));
     new_node->data = student_id;
-
     if(is_queue_emty(*toilet_group_queue)){
         new_node->link = NULL;
         toilet_group_queue->tail = new_node;
@@ -124,8 +120,8 @@ void enter(queue *toilet_group_queue, int student_id){
         (toilet_group_queue->head)->link = xor((toilet_group_queue->head)->link, new_node);
         new_node->link = toilet_group_queue->head;
     }
-
     toilet_group_queue->head = new_node;
+    return;
 }
 
 void leave(queue *toilet_group_queue){
@@ -138,6 +134,7 @@ void leave(queue *toilet_group_queue){
     if(toilet_group_queue->head == NULL){
         toilet_group_queue->tail = NULL;
     }
+    return;
 }
 
 void go(queue *toilet_group_queue){
@@ -150,38 +147,31 @@ void go(queue *toilet_group_queue){
     if(toilet_group_queue->tail == NULL){
         toilet_group_queue->head = NULL;
     }
+    return;
 }
 
-void close(int m, int k, queue toilet_group_queue[m][k], int toilet_id, int closed_toilet[], int gp[m][k], int gph[m], int gpt[m]){
-    int moving_spot = 0;
+void close(int *moving_spot, int m, int k, queue **toilet_group_queue, int toilet_id, int closed_toilet[m]){
+    *moving_spot = toilet_id;
+    int x = 0;
     do{
-        moving_spot = toilet_id - 1;
-        if(moving_spot == -1){
-            moving_spot = m - 1;
+        *moving_spot -= 1;
+        if(*moving_spot == -1){
+            *moving_spot = m - 1;
         }
-    }while(closed_toilet[moving_spot] == 1);
+        x++;
+    }while(closed_toilet[*moving_spot] == 1 && x != m-1);
     for(int i = 0; i < k; i++){
         if(toilet_group_queue[toilet_id][i].head == NULL && toilet_group_queue[toilet_id][i].tail == NULL){
             continue;
         }
+        else if(toilet_group_queue[*moving_spot][i].head !=NULL && toilet_group_queue[*moving_spot][i].tail != NULL){
+            connect_two_list(&toilet_group_queue[*moving_spot][i], &toilet_group_queue[toilet_id][i]);
+        }
         else{
-            connect_two_list(&toilet_group_queue[moving_spot][i], &toilet_group_queue[toilet_id][i]);
+            reverse_xor_queue(&toilet_group_queue[toilet_id][i]);
+            toilet_group_queue[*moving_spot][i] = toilet_group_queue[toilet_id][i];
         }
     }
-    if(gph[toilet_id] >= gpt[toilet_id]){
-        for(int i = gph[toilet_id]; i >= gpt[toilet_id]; i--){
-            push(gp[moving_spot], &gph[moving_spot], &gpt[moving_spot], gp[toilet_id][i], k);
-        }
-    }
-    else{
-        for(int i = gph[toilet_id]; i >= 0; i--){
-            push(gp[moving_spot], &gph[moving_spot], &gpt[moving_spot], gp[toilet_id][i], k);
-        }
-        for(int i = k - 1; i >= gpt[toilet_id]; i--){
-            push(gp[moving_spot], &gph[moving_spot], &gpt[moving_spot], gp[toilet_id][i], k);
-        }
-    }
-    
     return;
 }
 
@@ -190,29 +180,34 @@ int main(){
     int n = 0;
     int k = 0;
     scanf("%d%d%d", &m, &n, &k);
-
-    queue toilet_group_queue[m][k];
+    
+    queue **toilet_group_queue = malloc(sizeof(queue*)*m);
+    int **group_priority = malloc(sizeof(int*)*m);
+    int **group_appearance = malloc(sizeof(int*)*m);
+    for(int i = 0; i < m; i++){
+        toilet_group_queue[i] = malloc(sizeof(queue)*k);
+        group_priority[i] = malloc(sizeof(int)*k);
+        group_appearance[i] = malloc(sizeof(int)*k);
+    }
     for(int i = 0; i < m; i++){
         for(int j = 0; j < k; j++){
             toilet_group_queue[i][j].head = NULL;
             toilet_group_queue[i][j].tail = NULL;
         }
     }
-
     int closed_toilet[m];
-    int group_priority[m][k];
     int group_priority_head[m];
     int group_priority_tail[m];
     for(int i = 0; i < m; i++){
         for(int j = 0; j < k; j++){
             group_priority[i][j] = -1;
+            group_appearance[i][j] = 0;
         }
         group_priority_head[i] = -1;
         group_priority_tail[i] = -1;
         closed_toilet[i] = 0;
     }
     
-
     char situation[10];
     char a[] = "enter";
     char b[] = "leave";
@@ -228,27 +223,45 @@ int main(){
         if(strcmp(situation, a) == 0){
             scanf("%d%d%d", &group_id, &student_id, &toilet_id);
             enter(&toilet_group_queue[toilet_id][group_id], student_id);
-            push(group_priority[toilet_id], &group_priority_head[toilet_id], &group_priority_tail[toilet_id], group_id, k);
+            push(group_priority[toilet_id], &group_priority_head[toilet_id], &group_priority_tail[toilet_id], group_id, k, group_appearance[toilet_id]);
         }
         else if(strcmp(situation, b) == 0){
             scanf("%d", &toilet_id);     
             leave(&toilet_group_queue[toilet_id][group_priority[toilet_id][group_priority_head[toilet_id]]]);
             if(toilet_group_queue[toilet_id][group_priority[toilet_id][group_priority_head[toilet_id]]].head == NULL){
-                pop_head(group_priority[toilet_id], &group_priority_head[toilet_id], &group_priority_tail[toilet_id], k);
+                pop_head(group_priority[toilet_id], &group_priority_head[toilet_id], &group_priority_tail[toilet_id], k, group_appearance[toilet_id]);
             }
         }
         else if(strcmp(situation, c) == 0){
             scanf("%d", &toilet_id);
             go(&toilet_group_queue[toilet_id][group_priority[toilet_id][group_priority_tail[toilet_id]]]); 
             if(toilet_group_queue[toilet_id][group_priority[toilet_id][group_priority_tail[toilet_id]]].tail == NULL){
-                pop_tail(group_priority[toilet_id], &group_priority_head[toilet_id], &group_priority_tail[toilet_id], k);
+                pop_tail(group_priority[toilet_id], &group_priority_head[toilet_id], &group_priority_tail[toilet_id], k, group_appearance[toilet_id]);
             }
         }
         else if(strcmp(situation, d) == 0){
             scanf("%d", &toilet_id);
-            int moving_spot = 0;
-            close(m, k, toilet_group_queue, toilet_id, closed_toilet, group_priority, group_priority_head, group_priority_tail);
-            closed_toilet[toilet_id] = 1;
+            if(group_priority_head[toilet_id] == -1 && group_priority_tail[toilet_id] == -1){
+                closed_toilet[toilet_id] = 1;
+            }
+            else{
+                int moving_spot = 0;
+                close(&moving_spot, m, k, toilet_group_queue, toilet_id, closed_toilet);
+                if(group_priority_head[toilet_id] >= group_priority_tail[toilet_id]){
+                    for(int i = group_priority_head[toilet_id]; i >= group_priority_tail[toilet_id]; i--){
+                        push(group_priority[moving_spot], &group_priority_head[moving_spot], &group_priority_tail[moving_spot], group_priority[toilet_id][i], k, group_appearance[moving_spot]);
+                    }
+                }
+                else{
+                    for(int i = group_priority_head[toilet_id]; i >= 0; i--){
+                        push(group_priority[moving_spot], &group_priority_head[moving_spot], &group_priority_tail[moving_spot], group_priority[toilet_id][i], k, group_appearance[moving_spot]);
+                    }
+                    for(int i = k - 1; i >= group_priority_tail[toilet_id]; i--){
+                        push(group_priority[moving_spot], &group_priority_head[moving_spot], &group_priority_tail[moving_spot], group_priority[toilet_id][i], k, group_appearance[moving_spot]);
+                    }
+                }
+                closed_toilet[toilet_id] = 1;
+            }
         }
     }
 
@@ -279,7 +292,6 @@ int main(){
         }
         printf("\n");
     }
-
 
     return 0;
 }
