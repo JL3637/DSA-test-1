@@ -213,7 +213,6 @@ int main(){
     char b[] = "leave";
     char c[] = "go";
     char d[] = "close";
-
     int group_id = 0;
     int student_id = 0;
     int toilet_id = 0;
